@@ -1858,6 +1858,20 @@ config ACPUCLOCK_LIMIT_768MHZ
 	help
 		Support to limit the CPU frequency at 768MHz.
 
+config ACPUCLOCK_OVERCLOCK
+	bool "Enable CPU Overclocking."
+	default n
+	help
+	  Allow setting cpu clocks higher than factory clocks.
+          May cause issues if clocks are pushed to high. USE AT OWN RISK!
+
+config 1200MHZ_PLL2_OVERCLOCK
+	bool "Enable 1200MHZ Pll2 Overclocking."
+	default n
+	help
+	  Switch pll2 to set appropriate clocks for 1200mhz devices.
+          So far Design 4g/Hero S.
+
 config HTC_SMEM_MSMC1C2_DEBUG
 	bool "MSMC1/MSMC2 shared memory debug"
 	default n
