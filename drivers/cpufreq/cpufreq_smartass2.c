@@ -101,7 +101,7 @@ static unsigned long down_rate_us;
  * The frequency to set when waking up from sleep.
  * When sleep_ideal_freq=0 this will have no effect.
  */
-#define DEFAULT_SLEEP_WAKEUP_FREQ 806400
+#define DEFAULT_SLEEP_WAKEUP_FREQ 1401600
 static unsigned int sleep_wakeup_freq;
 
 /*
