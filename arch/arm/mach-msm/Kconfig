@@ -1865,8 +1865,17 @@ config ACPUCLOCK_OVERCLOCK
 	  Allow setting cpu clocks higher than factory clocks.
           May cause issues if clocks are pushed to high. USE AT OWN RISK!
 
+config NORMAL_PLL2_OVERCLOCK
+	bool "Enable Normal Pll2 Overclocking."
+        depends on ACPUCLOCK_OVERCLOCK
+	default n
+	help
+	  Switch pll2 to set appropriate clocks for Non-1200mhz devices.
+          Needed for 806mhz and 1024 Devices.
+
 config 1200MHZ_PLL2_OVERCLOCK
 	bool "Enable 1200MHZ Pll2 Overclocking."
+        depends on ACPUCLOCK_OVERCLOCK
 	default n
 	help
 	  Switch pll2 to set appropriate clocks for 1200mhz devices.
