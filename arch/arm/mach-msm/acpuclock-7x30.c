@@ -91,26 +91,29 @@ struct clkctl_acpu_speed {
 static struct clock_state drv_state = { 0 };
 
 static struct cpufreq_frequency_table freq_table[] = {
+#ifdef CONFIG_ACPUCLOCK_OVERCLOCK
+	{ 0, 245760 },
+	{ 1, 368640 },
+	{ 2, 768000 },
+	{ 3, 806400 }, 
+	{ 4, 1305600 },
+	{ 5, 1401600 },
+	{ 6, 1516800 },
+	{ 7, 1612800 },
+	{ 8, 1708800 },
+	{ 9, 1804800 },
+        { 10, 1920000 },
+	{ 11, CPUFREQ_TABLE_END },
+#else
 	{ 0, 245760 },
 	{ 1, 368640 },
 	{ 2, 768000 },
 #ifndef CONFIG_ACPUCLOCK_LIMIT_768MHZ
-	{ 3, 806400 }, 
-#ifdef CONFIG_ACPUCLOCK_OVERCLOCK
-	{ 4, 1113600 },
-	{ 5, 1305600 },
-	{ 6, 1401600 },
-	{ 7, 1516800 },
-	{ 8, 1612800 },
-	{ 9, 1708800 },
-	{ 10, 1804800 },
-        { 11, 1920000 },
-	{ 12, CPUFREQ_TABLE_END },
-#else
+	{ 3, 806400 },
 	{ 4, CPUFREQ_TABLE_END },
-#endif // CONFIG_ACPUCLOCK_OVERCLOCK
 #else
 	{ 3, CPUFREQ_TABLE_END },
+#endif
 #endif
 };
 
@@ -118,6 +121,7 @@ static struct cpufreq_frequency_table freq_table[] = {
 #define SRC_LPXO (-2)
 #define SRC_AXI  (-1)
 static struct clkctl_acpu_speed acpu_freq_tbl[] = {
+#ifdef CONFIG_ACPUCLOCK_OVERCLOCK
 	{ 24576,  SRC_LPXO, 0, 0,  30720000,  850, VDD_RAW(850) },
 	{ 61440,  PLL_3,    5, 11, 61440000,  850, VDD_RAW(850) },
 	{ 122880, PLL_3,    5, 5,  61440000,  850, VDD_RAW(850) },
@@ -126,7 +130,6 @@ static struct clkctl_acpu_speed acpu_freq_tbl[] = {
 	{ 245760, PLL_3,    5, 2,  61440000,  850, VDD_RAW(850) },
 	{ 368640, PLL_3,    5, 1,  122800000, 850, VDD_RAW(850) },
 	{ 768000, PLL_1,    2, 0,  153600000, 950, VDD_RAW(950) },
-#ifndef CONFIG_ACPUCLOCK_LIMIT_768MHZ
 	/* ACPU >= 806.4MHz requires MSMC1 @ 1.2V. Voting for
 	 * AXI @ 192MHz accomplishes this implicitly. 806.4MHz
 	 * is updated to 1024MHz at runtime for QSD8x55.
@@ -134,9 +137,7 @@ static struct clkctl_acpu_speed acpu_freq_tbl[] = {
          for NON 1200mhz DEVICES! 
          * Make sure any freq based from PLL_2 is a multiple of 9600
          for 1200mhz DEVICES (Design 4g/Hero S!*/
-	{ 806400, PLL_2,    3, 0,  192000000, 975, VDD_RAW(975) },   
-#ifdef CONFIG_ACPUCLOCK_OVERCLOCK
-	{ 1113600, PLL_2,   3, 0,  192000000, 1050, VDD_RAW(1050) }, 
+	{ 806400, PLL_2,    3, 0,  192000000, 975, VDD_RAW(975) },     
 	{ 1305600, PLL_2,   3, 0,  192000000, 1150, VDD_RAW(1150) }, 
 	{ 1401600, PLL_2,   3, 0,  192000000, 1200, VDD_RAW(1200) }, 
 	{ 1516800, PLL_2,   3, 0,  192000000, 1250, VDD_RAW(1250) }, 
@@ -144,7 +145,22 @@ static struct clkctl_acpu_speed acpu_freq_tbl[] = {
 	{ 1708800, PLL_2,   3, 0,  192000000, 1375, VDD_RAW(1375) }, 
 	{ 1804800, PLL_2,   3, 0,  192000000, 1450, VDD_RAW(1450) }, 
         { 1920000, PLL_2,   3, 0,  192000000, 1450, VDD_RAW(1450) },
-#endif // CONFIG_ACPUCLOCK_OVERCLOCK
+
+#else
+	{ 24576,  SRC_LPXO, 0, 0,  30720000,  1000, VDD_RAW(1000) },
+	{ 61440,  PLL_3,    5, 11, 61440000,  1000, VDD_RAW(1000) },
+	{ 122880, PLL_3,    5, 5,  61440000,  1000, VDD_RAW(1000) },
+	{ 184320, PLL_3,    5, 4,  61440000,  1000, VDD_RAW(1000) },
+	{ MAX_AXI_KHZ, SRC_AXI, 1, 0, 61440000, 1000, VDD_RAW(1000) },
+	{ 245760, PLL_3,    5, 2,  61440000,  1000, VDD_RAW(1000) },
+	{ 368640, PLL_3,    5, 1,  122800000, 1050, VDD_RAW(1050) },
+	{ 768000, PLL_1,    2, 0,  153600000, 1100, VDD_RAW(1100) },
+#ifndef CONFIG_ACPUCLOCK_LIMIT_768MHZ
+	/* ACPU >= 806.4MHz requires MSMC1 @ 1.2V. Voting for
+	 * AXI @ 192MHz accomplishes this implicitly. 806.4MHz
+	 * is updated to 1024MHz at runtime for QSD8x55. */
+	{ 806400, PLL_2,    3, 0,  192000000, 1100, VDD_RAW(1100) },
+#endif
 #endif
 	{ 0 }
 };
@@ -224,6 +240,7 @@ static int acpuclk_set_acpu_vdd(struct clkctl_acpu_speed *s)
 static void acpuclk_set_src(const struct clkctl_acpu_speed *s)
 {
 	uint32_t reg_clksel, reg_clkctl, src_sel;
+	unsigned int lval;
 
 	reg_clksel = readl(SCSS_CLK_SEL_ADDR);
 
@@ -240,12 +257,19 @@ static void acpuclk_set_src(const struct clkctl_acpu_speed *s)
         /* Program PLL2 L val for overclocked speeds. */
 #ifdef CONFIG_1200MHZ_PLL2_OVERCLOCK
         if(s->src == PLL_2) {
-		writel(s->acpu_clk_khz/9600, PLL2_L_VAL_ADDR);
-}
-#else
+		lval = s->acpu_clk_khz/9600;	
+                // cheat a bit here clock down one when high freq
+                if (s->acpu_clk_khz > 1500000) lval--;
+		writel(lval, PLL2_L_VAL_ADDR);
+	}
+#endif
+#ifdef CONFIG_NORMAL_PLL2_OVERCLOCK
         if(s->src == PLL_2) {
-		writel(s->acpu_clk_khz/19200, PLL2_L_VAL_ADDR);
-}
+		lval = s->acpu_clk_khz/19200;	
+                // cheat a bit here clock down one when high freq
+                if (s->acpu_clk_khz > 1500000) lval--;
+		writel(lval, PLL2_L_VAL_ADDR);
+	}
 #endif
 
 	/* Toggle clock source. */
@@ -567,10 +591,10 @@ void __init pll2_fixup(void)
 		cpu_freq->frequency = 1024000;
 		break;
 	case PLL2_1200_MHZ:
-		speed->acpu_clk_khz = 1209600;
-		speed->vdd_mv = 1125;
-		speed->vdd_raw = VDD_RAW(1125);
-		cpu_freq->frequency = 1209600;
+		speed->acpu_clk_khz = 1200000;
+		speed->vdd_mv = 1150;
+		speed->vdd_raw = VDD_RAW(1150);
+		cpu_freq->frequency = 1200000;
 		break;
 	case PLL2_1400_MHZ:
 	case PLL2_1420_MHZ:
